@@ -1,31 +1,28 @@
 function watchAd() {
     console.log("Reklam butonu tıklandı - RichAds push başlatılıyor");
 
-    // RichAds push'u manuel tetiklemek için (butonla çalışsın)
-    // RichAds otomatik başlatır ama biz etkileşimle tetikleyelim
-    if (typeof RichPush !== 'undefined' && RichPush.show) {
-        RichPush.show();  // RichAds push'u göster (eğer SDK yüklendiyse)
-        console.log("RichPush.show() çağrıldı");
-    } else {
-        console.log("RichAds SDK henüz yüklenmedi, 1 sn bekleniyor...");
-        setTimeout(() => {
-            if (typeof RichPush !== 'undefined' && RichPush.show) {
-                RichPush.show();
-            } else {
-                console.error("RichAds SDK yüklenemedi veya show fonksiyonu yok");
-            }
-        }, 1000);  // 1 saniye bekle, script yüklenmesini bekle
-    }
+    // RichAds push script'i (zaten https, ama emin olalım)
+    var script = document.createElement('script');
+    script.type = 'module';
+    script.src = 'https://richinfo.co/richpartners/push/js/rp-cl-ob.js?pubid=1002390&siteid=388020&niche=33';
+    script.async = true;
+    script.setAttribute('data-cfasync', 'false');
+    script.onload = function() {
+        console.log("RichAds script yüklendi");
+    };
+    script.onerror = function() {
+        console.error("RichAds script yüklenemedi");
+    };
+    document.head.appendChild(script);
 
-    // Push gösterildikten sonra kredi ekle (RichAds callback'i yoksa 5 sn sonra otomatik ekle)
+    // Push gösterildikten sonra kredi ekle (RichAds callback yoksa 5 sn sonra otomatik)
     setTimeout(() => {
         console.log("Reklam etkileşimi tamamlandı varsayılıyor - kredi ekleniyor");
         fetch('/add_credit', { method: 'POST' })
-            .then(response => response.text())
             .then(() => {
                 console.log("Kredi +1 eklendi");
-                location.reload();  // Sayfayı yenile, krediyi göster
+                location.reload();
             })
-            .catch(err => console.error("Kredi ekleme hatası:", err));
-    }, 5000);  // 5 saniye bekle (push gösterilsin diye)
+            .catch(err => console.error("Kredi hatası:", err));
+    }, 5000); // 5 sn bekle
 }
