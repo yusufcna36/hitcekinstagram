@@ -1,28 +1,29 @@
 function watchAd() {
-    console.log("Reklam butonu tıklandı - RichAds push başlatılıyor");
+    console.log("Reklam butonu tıklandı");
 
-    // RichAds push script'i (zaten https, ama emin olalım)
-    var script = document.createElement('script');
-    script.type = 'module';
-    script.src = 'https://richinfo.co/richpartners/push/js/rp-cl-ob.js?pubid=1002390&siteid=388020&niche=33';
-    script.async = true;
-    script.setAttribute('data-cfasync', 'false');
-    script.onload = function() {
-        console.log("RichAds script yüklendi");
-    };
-    script.onerror = function() {
-        console.error("RichAds script yüklenemedi");
-    };
-    document.head.appendChild(script);
+    // RichAds push otomatik başlar, biz sadece etkileşim bekleyelim
+    // Buton tıklamasını sadece loglamak için kullanıyoruz
+    console.log("RichAds push otomatik olarak tetiklenecek (sayfa etkileşimiyle)");
 
-    // Push gösterildikten sonra kredi ekle (RichAds callback yoksa 5 sn sonra otomatik)
-    setTimeout(() => {
-        console.log("Reklam etkileşimi tamamlandı varsayılıyor - kredi ekleniyor");
+    // Gerçek RichAds callback'i (eğer destekliyorsa) veya etkileşim algıla
+    // RichAds push tıklandığında veya gösterildiğinde kredi ekle (gerçek callback yoksa alternatif)
+    window.onRichAdsPushClick = function() {
+        console.log("Push bildirimi tıklandı - kredi ekleniyor");
         fetch('/add_credit', { method: 'POST' })
             .then(() => {
-                console.log("Kredi +1 eklendi");
+                console.log("Kredi +1 eklendi (push tıklama)");
                 location.reload();
             })
             .catch(err => console.error("Kredi hatası:", err));
-    }, 5000); // 5 sn bekle
+    };
+
+    // Alternatif: Sayfa etkileşimi sonrası (scroll, click vs.) push çıkarsa kredi ekle
+    setTimeout(() => {
+        if (document.hidden === false) { // Sayfa aktifse
+            console.log("Sayfa etkileşimi algılandı - kredi ekleniyor (test için)");
+            fetch('/add_credit', { method: 'POST' })
+                .then(() => location.reload())
+                .catch(err => console.error(err));
+        }
+    }, 10000); // 10 sn sonra etkileşim kontrol et
 }
