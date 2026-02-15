@@ -1,0 +1,10 @@
+flask
+flask-session
+flask-limiter
+bcrypt
+supabase
+python-dotenv
+werkzeug
+pyqrcode
+pypng
+gunicorn          # Render start için zorunlu!
