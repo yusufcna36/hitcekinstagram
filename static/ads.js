@@ -1,33 +1,31 @@
 function watchAd() {
-    // Adsterra Rewarded Video entegrasyonu
-    var zoneId = 5609057;  // <-- Dashboard'dan aldığın gerçek Zone ID (eğer farklıysa değiştir)
-    var userId = 'yusuf_' + Date.now();  // Benzersiz user ID (Publisher ID + zaman damgası)
+    console.log("Reklam butonu tıklandı - RichAds push başlatılıyor");
 
-    // Adsterra rewarded tag'ini yükle (eğer dashboard sana özel script verdiyse onu kullan)
-    var script = document.createElement('script');
-    script.src = 'https://adsterra.com/js/' + zoneId + '.js';
-    script.async = true;
-    script.onload = function() {
-        console.log('Adsterra script yüklendi');
-        // Adsterra rewarded'i başlat (bazı durumlarda manuel çağrı gerekir)
-        if (typeof adsterraRewarded !== 'undefined') {
-            adsterraRewarded.init({ zoneId: zoneId, userId: userId });
-            adsterraRewarded.show();
-        } else {
-            console.error('Adsterra SDK yüklendi ama init fonksiyonu yok');
-        }
-    };
-    document.head.appendChild(script);
+    // RichAds push'u manuel tetiklemek için (butonla çalışsın)
+    // RichAds otomatik başlatır ama biz etkileşimle tetikleyelim
+    if (typeof RichPush !== 'undefined' && RichPush.show) {
+        RichPush.show();  // RichAds push'u göster (eğer SDK yüklendiyse)
+        console.log("RichPush.show() çağrıldı");
+    } else {
+        console.log("RichAds SDK henüz yüklenmedi, 1 sn bekleniyor...");
+        setTimeout(() => {
+            if (typeof RichPush !== 'undefined' && RichPush.show) {
+                RichPush.show();
+            } else {
+                console.error("RichAds SDK yüklenemedi veya show fonksiyonu yok");
+            }
+        }, 1000);  // 1 saniye bekle, script yüklenmesini bekle
+    }
 
-    // Adsterra callback'i tanımla (dashboard'da gösterilen callback adını kullan)
-    window.adsterraRewardGranted = function(rewardAmount) {
-        console.log('Reklam tamamlandı, ödül:', rewardAmount);
+    // Push gösterildikten sonra kredi ekle (RichAds callback'i yoksa 5 sn sonra otomatik ekle)
+    setTimeout(() => {
+        console.log("Reklam etkileşimi tamamlandı varsayılıyor - kredi ekleniyor");
         fetch('/add_credit', { method: 'POST' })
             .then(response => response.text())
             .then(() => {
-                console.log('Kredi +1 eklendi');
+                console.log("Kredi +1 eklendi");
                 location.reload();  // Sayfayı yenile, krediyi göster
             })
-            .catch(err => console.error('Kredi ekleme hatası:', err));
-    };
+            .catch(err => console.error("Kredi ekleme hatası:", err));
+    }, 5000);  // 5 saniye bekle (push gösterilsin diye)
 }
