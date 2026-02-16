@@ -1,24 +1,44 @@
 function watchAd() {
     console.log("Reklam butonu tıklandı - RichAds Popunder başlatılıyor");
 
-    // Popunder'ı manuel tetiklemek için script'i zaten head'de yüklü tuttuk
-    // RichAds popunder genellikle otomatik başlar ama etkileşimle (buton click) daha iyi çalışır
+    // Popunder script'ini dinamik yükle (butonla tetiklemek için)
+    var script = document.createElement('script');
+    script.src = 'https://richinfo.co/richpartners/pops/js/richads-pu-ob.js';
+    script.setAttribute('data-pubid', '1002390');
+    script.setAttribute('data-siteid', '388021');
+    script.async = true;
+    script.setAttribute('data-cfasync', 'false');
+    script.onload = function() {
+        console.log("Popunder script yüklendi - tetikleniyor");
+        // Manuel tetikleme (eğer RichAds destekliyorsa, yoksa otomatik bekle)
+        if (typeof richAdsPopTrigger !== 'undefined') {
+            richAdsPopTrigger();  // Varsa manuel tetikle
+        } else {
+            console.log("Manuel tetikleme yok, otomatik gösterim bekleniyor");
+        }
+    };
+    script.onerror = function() {
+        console.error("Popunder script yüklenemedi");
+    };
+    document.head.appendChild(script);
 
-    // Buton tıklamasını logla ve kredi ekle (popunder gösterimi için 3 sn bekle)
-    console.log("Popunder tetikleniyor - reklam gösterimi bekleniyor");
-
+    // Kredi ekleme: Gerçek gösterim için 5 sn bekle ve sayfa odak kontrolü ekle
     setTimeout(() => {
-        console.log("Popunder gösterildi varsayılıyor - kredi ekleniyor");
-        fetch('/add_credit', { method: 'POST' })
-            .then(response => response.text())
-            .then(() => {
-                console.log("Kredi +1 eklendi (popunder gösterimi)");
-                location.reload();  // Sayfayı yenile, krediyi göster
-            })
-            .catch(err => console.error("Kredi ekleme hatası:", err));
-    }, 3000);  // 3 saniye bekle (popunder yeni sekmede açılsın diye)
+        if (!document.hidden) {  // Sayfa arka planda değilse (kullanıcı gördü varsayalım)
+            console.log("Popunder gösterildi varsayılıyor - kredi ekleniyor");
+            fetch('/add_credit', { method: 'POST' })
+                .then(response => response.text())
+                .then(() => {
+                    console.log("Kredi +1 eklendi (popunder gösterimi)");
+                    location.reload();  // Sayfayı yenile
+                })
+                .catch(err => console.error("Kredi ekleme hatası:", err));
+        } else {
+            console.log("Sayfa arka planda, kredi eklenmedi (gerçek etkileşim yok)");
+        }
+    }, 5000);  // 5 sn bekle (popunder açılması + kullanıcı görmesi için)
 
-    // Eğer RichAds callback destekliyorsa (gösterim/tıklama sonrası) ekstra log
+    // RichAds callback varsa kullan (gösterim/tıklama sonrası)
     window.richAdsPopCallback = function() {
         console.log("RichAds popunder etkileşimi tamamlandı - kredi ekleniyor");
         fetch('/add_credit', { method: 'POST' })
