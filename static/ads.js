@@ -3,25 +3,23 @@ let adCooldown = false;
 function watchAd() {
 
     if (adCooldown) {
-        alert("Lütfen bekleyin.");
+        alert("Lütfen biraz bekleyin.");
         return;
     }
 
     adCooldown = true;
 
-    const adLink = "https://11745.xml.4armn.com/direct-link?pubid=1002390&siteid=388020";
+    // Reklamı göster
+    document.getElementById("adBox").style.display = "block";
 
-    // Reklamı aç
-    window.open(adLink, "_blank");
-
-    // 3 saniye sonra kredi isteği
+    // 5 saniye sonra kredi ekle
     setTimeout(() => {
         fetch('/add_credit', {
             method: 'POST',
-            credentials: 'same-origin' // 🔥 EN KRİTİK SATIR
+            credentials: 'same-origin'
         })
         .then(res => {
-            if (!res.ok) throw new Error("Unauthorized / Rate limit");
+            if (!res.ok) throw new Error("Unauthorized");
             return res.text();
         })
         .then(() => {
@@ -29,9 +27,9 @@ function watchAd() {
         })
         .catch(err => {
             console.error(err);
-            alert("Kredi eklenemedi, lütfen sayfayı yenileyip tekrar dene.");
+            alert("Kredi eklenemedi.");
         });
-    }, 3000);
+    }, 5000);
 
     // 30 saniye cooldown
     setTimeout(() => {
