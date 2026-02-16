@@ -1,38 +1,55 @@
-let adCooldown = false;
+document.addEventListener("DOMContentLoaded", function () {
 
-function watchAd() {
+    const watchBtn = document.getElementById("watchBtn");
+    const adBox = document.getElementById("adBox");
 
-    if (adCooldown) {
-        alert("Lütfen biraz bekleyin.");
-        return;
-    }
+    let adCooldown = false;
 
-    adCooldown = true;
+    watchBtn.addEventListener("click", function () {
 
-    // Reklamı göster
-    document.getElementById("adBox").style.display = "block";
+        if (adCooldown) {
+            alert("Lütfen biraz bekleyin.");
+            return;
+        }
 
-    // 5 saniye sonra kredi ekle
-    setTimeout(() => {
-        fetch('/add_credit', {
-            method: 'POST',
-            credentials: 'same-origin'
-        })
-        .then(res => {
-            if (!res.ok) throw new Error("Unauthorized");
-            return res.text();
-        })
-        .then(() => {
-            location.reload();
-        })
-        .catch(err => {
-            console.error(err);
-            alert("Kredi eklenemedi.");
-        });
-    }, 5000);
+        if (!adBox) {
+            console.error("adBox bulunamadı!");
+            return;
+        }
 
-    // 30 saniye cooldown
-    setTimeout(() => {
-        adCooldown = false;
-    }, 30000);
-}
+        adCooldown = true;
+
+        // Reklamı göster
+        adBox.style.display = "block";
+
+        // 5 saniye sonra kredi ekle
+        setTimeout(() => {
+
+            fetch('/add_credit', {
+                method: 'POST',
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error("Unauthorized");
+                }
+                return response.text();
+            })
+            .then(() => {
+                location.reload();
+            })
+            .catch(error => {
+                console.error("Hata:", error);
+                alert("Kredi eklenemedi.");
+            });
+
+        }, 5000);
+
+        // 30 saniye cooldown
+        setTimeout(() => {
+            adCooldown = false;
+        }, 30000);
+
+    });
+
+});
